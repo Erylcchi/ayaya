@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Letter to Aya — From Eri</title>
+
+<!-- Handwritten font from Google Fonts (used for consistency). 
+     If you'd like this embedded offline, provide a font file and I will update the package. -->
+<link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper: #fff8ef;
+  --ink: #233;
+  --muted: #6b6b6b;
+  --accent: #f7e9df;
+}
+html,body{height:100%;margin:0;background:#f2efe9;font-family: 'Homemade Apple', 'Patrick Hand', -apple-system, system-ui, "Segoe UI", Roboto, Arial; color:var(--ink);}
+.container{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}
+.shell{max-width:980px;width:100%;display:grid;grid-template-columns:1fr;align-items:start;gap:18px;}
+.stage{display:flex;align-items:center;justify-content:center;padding:26px;border-radius:18px;background:linear-gradient(180deg,#fbf6ef, #fff8ef);box-shadow:0 20px 50px rgba(20,20,20,0.08);border:1px solid rgba(0,0,0,0.03);}
+
+/* envelope area */
+.envelope-wrap{width:100%;max-width:760px;position:relative;}
+.envelope{width:100%;height:220px;max-height:56vh;min-height:160px;background:linear-gradient(180deg,#fff,#f7f1e8);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,0.06);cursor:pointer;transition:transform .22s;}
+.envelope.front{border:1px solid rgba(0,0,0,0.04)}
+
+/* envelope "flap" */
+.envelope::before{
+  content:'';position:absolute;left:50%;top:8px;transform:translateX(-50%);
+  width:86%;height:60%;background:linear-gradient(180deg,#fff,#f3eadf);clip-path:polygon(0 0,50% 60%,100% 0,100% 100%,0 100%);border-radius:8px;transition:all .45s cubic-bezier(.2,.9,.2,1);
+  box-shadow:inset 0 -1px 0 rgba(0,0,0,0.03);
+}
+.envelope.open::before{transform:translateX(-50%) translateY(-105%) rotateX(12deg);opacity:0.98;}
+
+/* envelope label */
+.envelope-label{position:relative;z-index:2;font-size:22px;color:var(--ink);font-weight:400;letter-spacing:0.2px}
+.envelope-label small{display:block;font-size:12px;color:var(--muted);font-family:Arial,Helvetica,sans-serif;letter-spacing:0.6px}
+
+/* letter card revealed */
+.letter{margin-top:18px;background:var(--paper);border-radius:12px;padding:20px 22px;box-shadow:0 12px 28px rgba(10,10,10,0.06);opacity:0;transform:translateY(10px) scale(.995);transition:all .4s ease;max-width:760px;}
+.letter.visible{opacity:1;transform:translateY(0) scale(1);}
+
+/* paper lines */
+.letter .paper-body{background-image:linear-gradient(transparent 0 40px, rgba(0,0,0,0.02) 40px);padding:18px;border-radius:8px;min-height:260px;white-space:pre-wrap;font-size:20px;line-height:1.6;}
+
+.signature{margin-top:18px;font-size:20px}
+
+/* controls */
+.controls{display:flex;gap:8px;margin-top:12px;align-items:center;}
+.btn{background:#fff;border:1px solid rgba(0,0,0,0.06);padding:10px 12px;border-radius:10px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;font-size:14px;box-shadow:0 6px 12px rgba(0,0,0,0.04);}
+.btn:active{transform:translateY(1px)}
+
+/* small speaker toggle */
+.speaker{position:fixed;right:18px;bottom:18px;background:rgba(255,255,255,0.92);border-radius:12px;padding:8px;box-shadow:0 6px 16px rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.04);cursor:pointer;font-size:16px;display:flex;align-items:center;gap:8px;font-family:Arial,Helvetica,sans-serif}
+.speaker.hidden{display:none}
+
+/* responsive */
+@media (max-width:740px){
+  .envelope{height:170px}
+  .letter .paper-body{min-height:200px;font-size:18px}
+  .envelope-label{font-size:18px}
+  .container{padding:12px}
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="shell">
+    <div class="stage">
+      <div class="envelope-wrap">
+        <div class="envelope front" id="envelope" role="button" tabindex="0" aria-label="Open letter to Aya">
+          <div class="envelope-label"><span style="font-size:20px;">To: Aya</span><small>Tap to open</small></div>
+        </div>
+
+        <div class="letter" id="letterCard" aria-hidden="true">
+          <div class="paper-body" id="paperBody">
+Dear Aya,
+[Write your opening line here...]
+[Write what you’ve been meaning to say to Aya...]
+[Closing thoughts or message...]
+With all my heart,
+Eri
+          </div>
+
+          <div class="signature" aria-hidden="true">— Eri</div>
+          <div class="controls">
+            <button class="btn" id="copyBtn">Copy</button>
+            <button class="btn" id="printBtn">Print / Save PDF</button>
+            <button class="btn" id="resetBtn">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- speaker toggle -->
+<div class="speaker" id="speakerToggle" title="Toggle background music" aria-hidden="true">
+  <span id="speakerIcon">🔊</span><span style="font-size:13px;color:#444">Music</span>
+</div>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+  const envelope = document.getElementById('envelope');
+  const letterCard = document.getElementById('letterCard');
+  const paperBody = document.getElementById('paperBody');
+  const speakerToggle = document.getElementById('speakerToggle');
+  const speakerIcon = document.getElementById('speakerIcon');
+  const copyBtn = document.getElementById('copyBtn');
+  const printBtn = document.getElementById('printBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let opened = false;
+  let player = null;
+  const YT_VIDEO_ID = '4KzrdHXMzuo'; // provided video id
+  const START_DELAY_MS = 1000; // 1 second delay after opening
+  const DEFAULT_VOLUME = 25; // percent
+
+  function openLetter(){
+    if(opened) return;
+    opened = true;
+    document.querySelector('.envelope').classList.add('open');
+    // reveal the letter
+    setTimeout(()=>{
+      letterCard.classList.add('visible');
+      letterCard.setAttribute('aria-hidden','false');
+    }, 250);
+    // start music after 1s delay (user gesture already happened)
+    setTimeout(()=>{
+      if(player && typeof player.playVideo === 'function'){
+        player.setVolume(DEFAULT_VOLUME);
+        player.playVideo();
+        speakerToggle.setAttribute('aria-hidden','false');
+        speakerToggle.classList.remove('hidden');
+      }
+    }, START_DELAY_MS + 300); // slight extra for visual timing
+  }
+
+  envelope.addEventListener('click', openLetter);
+  envelope.addEventListener('keypress', (e)=>{ if(e.key==='Enter' || e.key===' ') openLetter(); });
+
+  // YouTube API setup: create hidden player on the page
+  function onYouTubeIframeAPIReady(){
+    // create a hidden div for the player
+    const div = document.createElement('div');
+    div.id = 'ytplayer';
+    div.style.width = '0px';
+    div.style.height = '0px';
+    div.style.position = 'absolute';
+    div.style.left='-9999px';
+    document.body.appendChild(div);
+
+    player = new YT.Player('ytplayer', {
+      height: '0',
+      width: '0',
+      videoId: YT_VIDEO_ID,
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        rel: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        showinfo: 0
+      },
+      events: {
+        'onReady': (event)=>{
+          // mute initially (we'll set volume later)
+          try{ event.target.setVolume(0); }catch(e){}
+        },
+        'onStateChange': (e)=>{ /* noop */ }
+      }
+    });
+  }
+
+  // Speaker toggle functionality
+  let musicOn = true;
+  speakerToggle.addEventListener('click', ()=>{
+    if(!player) return;
+    if(musicOn){
+      player.pauseVideo();
+      speakerIcon.textContent = '🔇';
+      musicOn = false;
+    } else {
+      player.setVolume(DEFAULT_VOLUME);
+      player.playVideo();
+      speakerIcon.textContent = '🔊';
+      musicOn = true;
+    }
+  });
+
+  // controls: copy, print, reset
+  copyBtn.addEventListener('click', async ()=>{
+    try{
+      const text = paperBody.innerText;
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(()=> copyBtn.textContent='Copy', 1200);
+    }catch(e){ alert('Copy failed — try selecting the text manually.'); }
+  });
+  printBtn.addEventListener('click', ()=> window.print());
+  resetBtn.addEventListener('click', ()=>{
+    if(!confirm('Reset letter content to placeholders?')) return;
+    paperBody.innerText = "Dear Aya,\\n[Write your opening line here...]\\n[Write what you’ve been meaning to say to Aya...]\\n[Closing thoughts or message...]\\nWith all my heart,\\nEri";
+  });
+
+  // small accessibility: allow pressing Enter to open from keyboard
+  document.addEventListener('keydown', (e)=>{
+    if((e.key==='Enter' || e.key===' ') && document.activeElement === envelope) openLetter();
+  });
+
+</script>
+</body>
+</html>
