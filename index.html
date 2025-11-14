@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Letter for Aya</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="assets/style.css" />
+<script src="https://www.youtube.com/iframe_api"></script>
 </head>
+
 <body>
 
 <div id="envelope" class="closed">
@@ -15,15 +17,16 @@
 
 <div id="letter" class="hidden">
   <div id="page-container">
-    <div class="page">I am writing this not so formal letter ... (Page 1 placeholder)</div>
+    <div class="page">[PAGE 1 TEXT HERE]</div>
     <div class="page">Call signs: baby<br>Label: wala</div>
-    <div class="page">Suddenly, I got this intrusive thought ... (Page 3 placeholder)</div>
+    <div class="page">[PAGE 3 TEXT HERE]</div>
   </div>
   <button id="arrow-right" class="arrow">→</button>
 </div>
 
-<audio id="bgm" src="meaningful_silence.mp3" loop preload="auto"></audio>
+<!-- Hidden YT player -->
+<div id="player" style="width:0;height:0;overflow:hidden;"></div>
 
-<script src="script.js"></script>
+<script src="assets/script.js"></script>
 </body>
 </html>
